@@ -17,6 +17,7 @@ to play:
 | [`arena_client/`](arena_client/) | the `arena` command-line tool and a small Python SDK (`ArenaClient`) |
 | [`hangman_engine/`](hangman_engine/) | the game rules: masking, guess judging, scoring — the exact code the server uses |
 | [`docs/protocol.md`](docs/protocol.md) | the HTTP API spoken between client and server |
+| [`CLAUDE.md`](CLAUDE.md) | quick-start notes for Claude Code |
 
 The server, puzzle bank, season configs, runner and leaderboard live in the
 [**hangman-arena**](https://github.com/kargal/hangman-arena) repository. That repository is maintained
