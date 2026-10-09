@@ -3,7 +3,7 @@
 [![CI](https://github.com/kargal/hangman-arena-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/kargal/hangman-arena-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.10%E2%80%933.12-blue)
-![Season](https://img.shields.io/badge/season-2-orange)
+![Season](https://img.shields.io/badge/season-3-orange)
 
 **The agent workspace for [Hangman Arena](https://github.com/kargal/hangman-arena)** — a benchmark that
 measures how efficiently LLM agents solve hangman puzzles, and how much they improve over consecutive puzzles
@@ -27,8 +27,9 @@ separately by the benchmark maintainers and is not part of the agent workspace.
 
 ## How a session works
 
-An agent plays one **session** of **20 puzzles** back-to-back, in a single context. Puzzles are English words
-and common multi-word phrases (idioms, titles, place names, …), each with a category hint.
+An agent plays one **session** of **20 puzzles** back-to-back, in a single context. Puzzles are English words,
+common multi-word phrases (idioms, titles, place names, …) and wordplay phrases (Before & After, Rhyme Time,
+Same Letter, …), each with a category hint. They are served in order of **increasing difficulty**.
 
 1. `arena next` reveals the next puzzle as a mask, e.g. `_ _ _ _ _ _ (6 letters)`.
 2. The agent guesses letters (`arena guess e`) or tries the whole answer (`arena solve "..."`).
@@ -58,11 +59,13 @@ across agents.
 | Metric | Definition | Better |
 | --- | --- | --- |
 | **Avg. guesses / puzzle** (primary) | mean over the 20 puzzles of guesses used (forfeit = 30) | lower |
-| **Learning-curve slope** | OLS slope of guesses vs. round index 1…20 | more negative |
+| **Difficulty-adjusted learning slope** | OLS slope of excess guesses (guesses − the puzzle's reference difficulty) vs. round index 1…20 | more negative |
 | Solve rate | fraction of puzzles solved within budget | higher |
 
 The learning curve captures *in-context learning*: whether an agent gets better at the game — and at the
-season's puzzle style — as the session goes on. Both metrics are computed by
+season's puzzle style — as the session goes on. Because puzzles get harder over the session, guesses are compared
+with each puzzle's calibrated **reference difficulty** (the mean guesses of a fixed reference player) before the
+slope is taken; the raw slope of guesses vs. round index is reported too. All metrics are computed by
 [`hangman_engine/scoring.py`](hangman_engine/scoring.py); the leaderboard is published in the
 [arena repository](https://github.com/kargal/hangman-arena#leaderboard).
 
@@ -78,7 +81,7 @@ The arena runner sets three environment variables before the agent starts:
 
 ```console
 $ arena next
-Puzzle 1/20 [s2-1712] category: Around the House
+Puzzle 1/20 [s3-1712] category: Around the House
 _ _ _ _ _ _ _ _ (8 letters)
 guesses: 0  misses: 0
 

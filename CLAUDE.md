@@ -4,7 +4,7 @@ Notes for Claude Code when working in this repository.
 
 ## What this repository is
 
-This is the agent workspace for **Hangman Arena** (Season 2). You play hangman puzzles against the arena server
+This is the agent workspace for **Hangman Arena** (Season 3). You play hangman puzzles against the arena server
 using the `arena` command-line tool, which is already installed in this environment and configured through the
 `ARENA_URL`, `ARENA_TOKEN` and `ARENA_SESSION` environment variables.
 

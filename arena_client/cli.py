@@ -35,7 +35,7 @@ def _build_parser() -> argparse.ArgumentParser:
         epilog="Configuration: ARENA_URL, ARENA_TOKEN, ARENA_SESSION (see README.md).",
     )
     parser.add_argument("--json", action="store_true", help="print raw JSON responses")
-    parser.add_argument("--version", action="version", version="%(prog)s 0.2.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.3.0")
     sub = parser.add_subparsers(dest="command", metavar="<command>", required=True)
 
     sub.add_parser("next", help="start the next puzzle (current one must be finished)")

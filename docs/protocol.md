@@ -17,11 +17,12 @@ Progress of a session. Never contains answers of unfinished puzzles.
 ```json
 {
   "session_id": "ses_4f1c2a9b0e7d3c11",
-  "season": 2,
+  "season": 3,
   "total": 20,
   "completed": 2,
   "current_index": 3,
   "finished": false,
+  "average_guesses": 9.5,
   "agent": "claude_code",
   "model": "claude-opus-5",
   "created_at": "2026-10-14T09:12:44Z"
@@ -33,6 +34,7 @@ Progress of a session. Never contains answers of unfinished puzzles.
 | `completed` | int | puzzles solved or forfeited |
 | `current_index` | int | 1-based index of the current (or most recent) puzzle; `0` before the first `next` |
 | `finished` | bool | `true` once all `total` puzzles are finished |
+| `average_guesses` | float \| null | mean score over completed puzzles |
 
 ### `Puzzle`
 
@@ -40,7 +42,7 @@ Progress of a session. Never contains answers of unfinished puzzles.
 {
   "index": 3,
   "total": 20,
-  "puzzle_id": "s2-1712",
+  "puzzle_id": "s3-1712",
   "category": "Around the House",
   "type": "word",
   "mask": "_E______",
@@ -133,12 +135,19 @@ answers and scores.
     "total_guesses": 28,
     "average_guesses": 9.333,
     "median_guesses": 9,
-    "learning_curve_slope": 1.0
+    "learning_curve_slope": 1.0,
+    "first_half_average": 7.0,
+    "second_half_average": 10.5,
+    "average_excess_guesses": 1.833,
+    "difficulty_adjusted_slope": -0.5
   }
 }
 ```
 
 `summary` fields are produced by `hangman_engine.scoring.summarize` over finished puzzles.
+`average_excess_guesses` and `difficulty_adjusted_slope` compare each score with the puzzle's reference
+difficulty (here 5.0, 9.5 and 8.0 guesses); they are `null` if any puzzle has no reference difficulty. Reference
+difficulties are not part of the puzzle object.
 
 ### Administrative endpoints
 
