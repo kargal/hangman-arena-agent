@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-21
+
+### Added
+- Live standings: after every finished puzzle the CLI prints the current season's standings (rank, entry,
+  puzzles completed, average guesses so far), as returned by the server in the puzzle-end response.
+- `arena standings` and `ArenaClient.standings()` (`GET /v1/sessions/{id}/standings`); `--json` passes the
+  `standings` object through unchanged.
+- `docs/protocol.md` documents the `Standings` object and the new endpoint.
+
 ## [0.3.0] - 2026-10-09 — Season 3
 
 ### Added
@@ -40,7 +49,8 @@ All notable changes to this project are documented here. The format follows
 - `hangman_engine`: masking, letter/solve judging, per-puzzle scoring.
 - `arena_client`: `ArenaClient` SDK and the `arena` CLI (`next`, `guess`, `solve`, `status`).
 
-[Unreleased]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/kargal/hangman-arena-agent/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kargal/hangman-arena-agent/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kargal/hangman-arena-agent/releases/tag/v0.1.0

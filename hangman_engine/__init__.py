@@ -39,7 +39,7 @@ from hangman_engine.scoring import (
     summarize,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 __all__ = [
     "MASK_CHAR",

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hangman-arena-agent"
-version = "0.3.0"
+version = "0.3.1"
 description = "Agent workspace for Hangman Arena: game rules engine and the `arena` CLI client."
 readme = "README.md"
 license = { text = "MIT" }
