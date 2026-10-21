@@ -156,12 +156,13 @@ def test_standings_are_printed_after_a_finished_puzzle(capsys: pytest.CaptureFix
     run(arena, capsys, "guess", "z")
     _, out, _ = run(arena, capsys, "solve", "oxbow")
     lines = out.splitlines()
-    start = lines.index("Season 9 standings (live, avg guesses/puzzle, lower is better):")
-    assert lines[start - 1] == "Solved! Answer: OXBOW - 3 guesses"
-    assert lines[start + 1].split() == ["1.", "Entry", "A", "(harness)", "1/3", "1.00"]
-    assert lines[start + 2].split() == [">", "2.", "you", "(test-model)", "1/3", "3.00"]
-    assert lines[start + 3].split() == ["3.", "Entry", "B", "(harness)", "1/3", "4.00"]
-    assert lines[-1] == "Run `arena next` for puzzle 2/3."
+    start = lines.index("=== Live standings: Season 9 (avg guesses/puzzle, lower is better) ===")
+    assert lines[start - 2 : start] == ["Solved! Answer: OXBOW - 3 guesses", ""]
+    assert lines[start + 1] == "You are #2 of 3."  # the server's notice, shown as sent
+    assert lines[start + 2].split() == ["1.", "Entry", "A", "(harness)", "1/3", "1.00"]
+    assert lines[start + 3].split() == [">", "2.", "you", "(test-model)", "1/3", "3.00"]
+    assert lines[start + 4].split() == ["3.", "Entry", "B", "(harness)", "1/3", "4.00"]
+    assert lines[start + 5 :] == ["", "Run `arena next` for puzzle 2/3."]
 
 
 def test_standings_after_forfeit_and_after_last_puzzle(capsys: pytest.CaptureFixture[str]) -> None:
@@ -174,6 +175,10 @@ def test_standings_after_forfeit_and_after_last_puzzle(capsys: pytest.CaptureFix
     run(arena, capsys, "next")
     _, out, _ = run(arena, capsys, "solve", "teaspoon")
     assert "Session complete: 2/2 puzzles" in out
+    assert out.splitlines()[-3:-1] == [
+        "=== Live standings: Season 9 (avg guesses/puzzle, lower is better) ===",
+        "You are #1 of 1.",
+    ]
     assert out.splitlines()[-1].split() == [">", "1.", "you", "(test-model)", "2/2", "1.50"]
 
 
@@ -190,6 +195,7 @@ def test_standings_command(capsys: pytest.CaptureFixture[str]) -> None:
     _, out, _ = run(arena, capsys, "standings")
     assert "> 1. you (test-model)" in out
     assert "  1. Entry A (harness)" in out  # tie on average: same rank
+    assert "You are #1 of 3." in out.splitlines()
 
 
 def test_standings_json_passthrough(capsys: pytest.CaptureFixture[str]) -> None:
@@ -201,8 +207,23 @@ def test_standings_json_passthrough(capsys: pytest.CaptureFixture[str]) -> None:
     body = json.loads(out)
     assert [e["model"] for e in body["standings"]["entries"]] == ["model-a", "test-model", "model-b"]
     assert body["standings"]["entries"][1]["you"] is True
+    # standings moved up next to the result, notice first; nothing else changes
+    assert list(body) == ["result", "standings", "session", "puzzle"]
+    assert list(body["standings"]) == ["notice", "season", "as_of", "entries"]
+    assert body["standings"]["notice"] == "You are #1 of 3."
     _, out, _ = run(arena, capsys, "--json", "standings")
-    assert json.loads(out)["standings"]["entries"][0]["rank"] == 1
+    body = json.loads(out)
+    assert list(body) == ["standings", "session"]
+    assert body["standings"]["entries"][0]["rank"] == 1
+
+
+def test_json_output_without_standings_is_unchanged(capsys: pytest.CaptureFixture[str]) -> None:
+    from tests.conftest import ANSWERS
+
+    arena = FakeArena(ANSWERS, others=OTHERS)
+    run(arena, capsys, "next")
+    _, out, _ = run(arena, capsys, "--json", "guess", "o")
+    assert list(json.loads(out)) == ["session", "puzzle", "result"]
 
 
 def test_empty_standings_message() -> None:

@@ -9,7 +9,8 @@
 
 Connection settings come from ``ARENA_URL``, ``ARENA_TOKEN`` and
 ``ARENA_SESSION`` (set by the arena runner). Add ``--json`` to any command to
-print the raw server response instead of formatted text.
+print the raw server response instead of formatted text (with ``standings``, when
+present, moved up next to ``result``).
 """
 
 from __future__ import annotations
@@ -88,7 +89,7 @@ def main(argv: Sequence[str] | None = None, *, client: ArenaClient | None = None
     finally:
         client.close()
 
-    print(json.dumps(body, indent=2) if args.json else render(body))
+    print(json.dumps(formatting.standings_first(body), indent=2) if args.json else render(body))
     return EXIT_OK
 
 

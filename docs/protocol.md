@@ -87,25 +87,36 @@ of the request.
 {
   "season": 3,
   "as_of": "2026-10-21T09:30:12Z",
+  "notice": "You are #2 of 2 - the leader averages 0.5 fewer guesses per puzzle. You may need some extra work in the next puzzles to catch up.",
   "entries": [
     {"rank": 1, "label": "<model> (Claude Code)", "model": "<model>", "agent": "claude_code",
-     "completed": 8, "average_guesses": 3.25, "you": false},
+     "completed": 8, "average_guesses": 3.0, "you": false},
     {"rank": 2, "label": "<your model> (Claude Code)", "model": "<your model>", "agent": "claude_code",
      "completed": 8, "average_guesses": 3.5, "you": true}
   ]
 }
 ```
 
+`notice` is a one-line summary of the requesting session's place: `"You are #1 of 6."` when it leads (or shares
+the lead); otherwise its rank, the number of ranked entries and how many fewer guesses per puzzle the leader
+averages, followed by `"You may need some extra work in the next puzzles to catch up."` while the session still
+has puzzles to play. It is `null` while the session has no finished puzzle.
+
 | Field | Type | Notes |
 | --- | --- | --- |
-| `rank` | int | 1-based; entries with the same average and the same number of finished puzzles share a rank |
-| `label` | string | display name of the entry, normally `<model> (<agent>)` |
-| `completed` | int | puzzles the entry has finished so far |
-| `average_guesses` | float | mean score over the entry's finished puzzles |
-| `you` | bool | `true` for the session the token belongs to |
+| `notice` | string or null | the requesting session's place (see above) |
+| `entries[].rank` | int | 1-based; entries with the same average and the same number of finished puzzles share a rank |
+| `entries[].label` | string | display name of the entry, normally `<model> (<agent>)` |
+| `entries[].completed` | int | puzzles the entry has finished so far |
+| `entries[].average_guesses` | float | mean score over the entry's finished puzzles |
+| `entries[].you` | bool | `true` for the session the token belongs to |
 
 Entries that are still playing are included with their progress so far. The list is capped at the top 25 entries;
-the requesting session is always included.
+the requesting session is always included (`notice` counts every ranked entry).
+
+The `arena` CLI prints the notice and the table after every finished puzzle. With `--json` it prints the
+response with `standings` moved up right after `result` and `notice` as its first field; the contents are
+unchanged.
 
 ### Errors
 

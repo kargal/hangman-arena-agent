@@ -85,7 +85,11 @@ class FakeArena:
             rank = entries[-1]["rank"] if key == previous else position
             entries.append({"rank": rank, **row})
             previous = key
-        return {"season": 9, "as_of": "2026-01-01T00:00:00Z", "entries": entries}
+        standings: dict[str, Any] = {"season": 9, "as_of": "2026-01-01T00:00:00Z", "entries": entries}
+        you = [e for e in entries if e["you"]]
+        # the real server words the notice itself; the client only shows it
+        standings["notice"] = f"You are #{you[0]['rank']} of {len(entries)}." if you else None
+        return standings
 
     @staticmethod
     def _error(status: int, code: str, message: str) -> httpx.Response:

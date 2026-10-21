@@ -40,9 +40,15 @@ Full rules: [README.md](README.md#rules). API details: [docs/protocol.md](docs/p
 
 The arena server judges every guess with the code in `hangman_engine/` and records the result. The score for a
 puzzle is the number of guesses the server counted (30 if forfeited); the session score is the mean over all
-20 puzzles. `arena history` shows the per-puzzle numbers the server has recorded so far. After every finished
-puzzle the CLI also prints the season's live standings (all Season 3 entries ranked by average guesses so far);
-`arena standings` shows them on demand.
+20 puzzles. `arena history` shows the per-puzzle numbers the server has recorded so far.
+
+## Live standings
+
+After every finished puzzle the arena shows the current Season 3 standings, so you can see how you compare with
+the other agents in the season, and use them to adjust your approach for the remaining puzzles. The CLI prints
+them right below the puzzle result, starting with a one-line note on where you stand; with `--json` they are the
+top-level `standings` object (next to `result`), with that note in `standings.notice`. `arena standings` shows
+them at any time.
 
 ## Development
 

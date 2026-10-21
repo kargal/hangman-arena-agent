@@ -82,11 +82,17 @@ def _entry_name(entry: dict[str, Any]) -> str:
 
 
 def format_standings(standings: dict[str, Any], total: int | None = None) -> str:
-    """Compact table of the season's live standings; this session is marked with ``>``."""
+    """The season's live standings: a header, the server's one-line notice (if any) and a compact table.
+
+    This session is marked with ``>``.
+    """
+    season = standings.get("season", "?")
     entries = standings.get("entries", [])
     if not entries:
-        return f"Season {standings.get('season', '?')} standings: no finished puzzles yet."
-    lines = [f"Season {standings.get('season', '?')} standings (live, avg guesses/puzzle, lower is better):"]
+        return f"Season {season} standings: no finished puzzles yet."
+    lines = [f"=== Live standings: Season {season} (avg guesses/puzzle, lower is better) ==="]
+    if standings.get("notice"):
+        lines.append(str(standings["notice"]))
     names = [_entry_name(e) for e in entries]
     rank_w = max(len(str(e["rank"])) for e in entries)
     name_w = max(len(n) for n in names)
@@ -99,6 +105,20 @@ def format_standings(standings: dict[str, Any], total: int | None = None) -> str
     return "\n".join(lines)
 
 
+def standings_first(body: dict[str, Any]) -> dict[str, Any]:
+    """``body`` for ``--json`` output with the standings moved up: right after ``result`` (or first), with the
+    ``notice`` as their first field. Contents are unchanged; only the key order differs."""
+    standings = body.get("standings")
+    if not isinstance(standings, dict):
+        return body
+    ordered_standings = {k: standings[k] for k in ("notice",) if k in standings}
+    ordered_standings.update(standings)
+    out: dict[str, Any] = {k: body[k] for k in ("result",) if k in body}
+    out["standings"] = ordered_standings
+    out.update((k, v) for k, v in body.items() if k not in out)
+    return out
+
+
 def format_after_move(body: dict[str, Any]) -> str:
     """Full output after ``arena guess`` / ``arena solve``."""
     puzzle, session = body["puzzle"], body["session"]
@@ -107,9 +127,12 @@ def format_after_move(body: dict[str, Any]) -> str:
         parts.append(format_outcome(puzzle))
         if session["finished"] and body.get("summary"):
             parts.append(format_summary(body["summary"], session["total"]))
-        if body.get("standings"):
-            parts.append(format_standings(body["standings"], session["total"]))
+        standings = body.get("standings")
+        if standings:
+            # set off by blank lines so the standings stand out between the outcome and the next-puzzle hint
+            parts += ["", format_standings(standings, session["total"])]
         if not session["finished"]:
+            parts += [""] if standings else []
             parts.append(format_next_hint(session))
     return "\n".join(parts)
 
