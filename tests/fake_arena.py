@@ -21,12 +21,22 @@ _ROUTE = re.compile(r"^/v1/sessions/(?P<sid>[^/]+)(?P<action>/[a-z]+)?$")
 
 
 class FakeArena:
-    def __init__(self, answers: list[tuple[str, str]], *, max_guesses: int = 30) -> None:
+    """``others`` are standings entries of other sessions: dicts with ``label``, ``model``, ``agent``,
+    ``completed`` and ``average_guesses``; they are ranked together with this session."""
+
+    def __init__(
+        self,
+        answers: list[tuple[str, str]],
+        *,
+        max_guesses: int = 30,
+        others: list[dict[str, Any]] | None = None,
+    ) -> None:
         self.puzzles = [
             Puzzle(f"s9-{i:04d}", answer, category, "phrase" if " " in answer else "word")
             for i, (answer, category) in enumerate(answers, start=1)
         ]
         self.max_guesses = max_guesses
+        self.others = list(others or [])
         self.states: list[PuzzleState] = []
         self.requests: list[httpx.Request] = []
 
@@ -53,6 +63,29 @@ class FakeArena:
 
     def _puzzle(self, index: int) -> dict[str, Any]:
         return {"index": index, "total": len(self.puzzles), **self.states[index - 1].view()}
+
+    def _standings(self) -> dict[str, Any]:
+        session = self._session()
+        rows = [dict(o, you=False) for o in self.others if o["completed"] > 0]
+        if session["completed"] > 0:
+            rows.append(
+                {
+                    "label": "test-model (test)",
+                    "model": session["model"],
+                    "agent": session["agent"],
+                    "completed": session["completed"],
+                    "average_guesses": session["average_guesses"],
+                    "you": True,
+                }
+            )
+        rows.sort(key=lambda r: (r["average_guesses"], -r["completed"]))
+        entries, previous = [], None
+        for position, row in enumerate(rows, start=1):
+            key = (round(row["average_guesses"], 3), row["completed"])
+            rank = entries[-1]["rank"] if key == previous else position
+            entries.append({"rank": rank, **row})
+            previous = key
+        return {"season": 9, "as_of": "2026-01-01T00:00:00Z", "entries": entries}
 
     @staticmethod
     def _error(status: int, code: str, message: str) -> httpx.Response:
@@ -84,6 +117,8 @@ class FakeArena:
             stats = summarize(self.states)
             scores = [s.score for s in self.states if s.finished]
             return httpx.Response(200, json={"session": self._session(), "scores": scores, "summary": stats.to_dict()})
+        if request.method == "GET" and action == "/standings":
+            return httpx.Response(200, json={"session": self._session(), "standings": self._standings()})
         if request.method == "POST" and action == "/next":
             if current is not None and not current.finished:
                 return self._error(409, "puzzle_in_progress", "finish the current puzzle before requesting the next")
@@ -109,5 +144,7 @@ class FakeArena:
             }
             if body["session"]["finished"]:
                 body["summary"] = summarize(self.states).to_dict()
+            if current.finished:
+                body["standings"] = self._standings()
             return httpx.Response(200, json=body)
         return self._error(405, "method_not_allowed", "method not allowed")

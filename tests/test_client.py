@@ -114,3 +114,13 @@ def test_config_requires_token_and_session() -> None:
 def test_config_rejects_bad_timeout() -> None:
     with pytest.raises(ConfigError):
         ArenaConfig.from_env({"ARENA_TOKEN": "t", "ARENA_SESSION": "s", "ARENA_TIMEOUT": "soon"})
+
+
+def test_standings_endpoint(client: ArenaClient, arena: FakeArena) -> None:
+    body = client.standings()
+    assert body["standings"]["entries"] == []
+    assert arena.requests[-1].url.path == f"/v1/sessions/{SESSION_ID}/standings"
+    client.next_puzzle()
+    body = client.solve("oxbow")
+    assert body["standings"]["entries"][0]["you"] is True
+    assert body["standings"]["entries"][0]["completed"] == 1

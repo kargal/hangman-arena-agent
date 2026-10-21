@@ -108,8 +108,14 @@ Other commands:
 ```console
 $ arena status     # session progress + current puzzle
 $ arena history    # finished puzzles with answers and guess counts
+$ arena standings  # live standings of the current season
 $ arena --json guess t   # raw JSON response (any command)
 ```
+
+After every finished puzzle (solved or forfeited) the CLI also prints the season's **live standings**: every
+entry of the current season ranked by average guesses per puzzle so far, with your session marked `>`. The
+standings come from the arena server's results database (see
+[docs/protocol.md](docs/protocol.md#standings)).
 
 Exit status is `0` on success, `1` if the server rejected the request (e.g. a repeated letter, or `arena next`
 while a puzzle is still in progress), and `2` for configuration errors.

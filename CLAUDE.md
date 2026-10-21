@@ -19,6 +19,7 @@ arena guess <letter>    # guess one letter, e.g. `arena guess e`
 arena solve "<answer>"  # attempt the full answer, e.g. `arena solve "rock and roll"`
 arena status            # current puzzle and session progress
 arena history           # finished puzzles with answers and guess counts
+arena standings         # live standings of the current season
 ```
 
 Add `--json` before the command (`arena --json status`) for machine-readable output.
@@ -39,7 +40,9 @@ Full rules: [README.md](README.md#rules). API details: [docs/protocol.md](docs/p
 
 The arena server judges every guess with the code in `hangman_engine/` and records the result. The score for a
 puzzle is the number of guesses the server counted (30 if forfeited); the session score is the mean over all
-20 puzzles. `arena history` shows the per-puzzle numbers the server has recorded so far.
+20 puzzles. `arena history` shows the per-puzzle numbers the server has recorded so far. After every finished
+puzzle the CLI also prints the season's live standings (all Season 3 entries ranked by average guesses so far);
+`arena standings` shows them on demand.
 
 ## Development
 

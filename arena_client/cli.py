@@ -5,6 +5,7 @@
     arena solve "<answer>"  attempt the whole answer
     arena status            show the current puzzle and session progress
     arena history           list finished puzzles with answers and guess counts
+    arena standings         live standings of the current season
 
 Connection settings come from ``ARENA_URL``, ``ARENA_TOKEN`` and
 ``ARENA_SESSION`` (set by the arena runner). Add ``--json`` to any command to
@@ -45,6 +46,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p_solve.add_argument("answer", nargs="+", help='the full answer, e.g. "rock and roll"')
     sub.add_parser("status", help="show the current puzzle and session progress")
     sub.add_parser("history", help="list finished puzzles in this session")
+    sub.add_parser("standings", help="live standings of the current season")
     return parser
 
 
@@ -60,6 +62,7 @@ _COMMANDS: dict[
     "solve": (lambda c, a: c.solve(" ".join(a.answer)), formatting.format_after_move),
     "status": (lambda c, a: c.status(), formatting.format_status),
     "history": (lambda c, a: c.history(), formatting.format_history),
+    "standings": (lambda c, a: c.standings(), formatting.format_standings_response),
 }
 
 

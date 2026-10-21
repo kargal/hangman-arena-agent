@@ -103,6 +103,10 @@ class ArenaClient:
         """Aggregate session statistics."""
         return self._request("GET", "/summary")
 
+    def standings(self) -> dict[str, Any]:
+        """Live standings of the current season (this session and every other entry)."""
+        return self._request("GET", "/standings")
+
     # -- internals ---------------------------------------------------------
 
     def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:

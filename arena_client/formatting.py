@@ -75,6 +75,30 @@ def format_next_hint(session: dict[str, Any]) -> str:
     return f"Run `arena next` for puzzle {session['completed'] + 1}/{session['total']}."
 
 
+def _entry_name(entry: dict[str, Any]) -> str:
+    if entry.get("you"):
+        return f"you ({entry['model']})" if entry.get("model") else "you"
+    return str(entry.get("label") or entry.get("model") or "unknown")
+
+
+def format_standings(standings: dict[str, Any], total: int | None = None) -> str:
+    """Compact table of the season's live standings; this session is marked with ``>``."""
+    entries = standings.get("entries", [])
+    if not entries:
+        return f"Season {standings.get('season', '?')} standings: no finished puzzles yet."
+    lines = [f"Season {standings.get('season', '?')} standings (live, avg guesses/puzzle, lower is better):"]
+    names = [_entry_name(e) for e in entries]
+    rank_w = max(len(str(e["rank"])) for e in entries)
+    name_w = max(len(n) for n in names)
+    for entry, name in zip(entries, names, strict=True):
+        done = f"{entry['completed']}/{total}" if total else str(entry["completed"])
+        avg = entry.get("average_guesses")
+        avg_txt = f"{avg:.2f}" if avg is not None else "-"
+        mark = ">" if entry.get("you") else " "
+        lines.append(f"{mark} {str(entry['rank']).rjust(rank_w)}. {name.ljust(name_w)}  {done.rjust(5)}  {avg_txt}")
+    return "\n".join(lines)
+
+
 def format_after_move(body: dict[str, Any]) -> str:
     """Full output after ``arena guess`` / ``arena solve``."""
     puzzle, session = body["puzzle"], body["session"]
@@ -83,9 +107,17 @@ def format_after_move(body: dict[str, Any]) -> str:
         parts.append(format_outcome(puzzle))
         if session["finished"] and body.get("summary"):
             parts.append(format_summary(body["summary"], session["total"]))
-        elif not session["finished"]:
+        if body.get("standings"):
+            parts.append(format_standings(body["standings"], session["total"]))
+        if not session["finished"]:
             parts.append(format_next_hint(session))
     return "\n".join(parts)
+
+
+def format_standings_response(body: dict[str, Any]) -> str:
+    """Output of ``arena standings``."""
+    session = body["session"]
+    return f"{format_session_line(session)}\n{format_standings(body['standings'], session['total'])}"
 
 
 def format_session_line(session: dict[str, Any]) -> str:

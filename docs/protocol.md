@@ -77,6 +77,36 @@ Progress of a session. Never contains answers of unfinished puzzles.
 
 `kind` is `"letter"` or `"solve"`. For solves, `value` is the normalised attempt and `occurrences` is `0`.
 
+### `Standings`
+
+Live standings of the current season: every session of the season with at least one finished puzzle, ranked by
+average guesses per puzzle so far (lower is better). Computed by the server from its results database at the time
+of the request.
+
+```json
+{
+  "season": 3,
+  "as_of": "2026-10-21T09:30:12Z",
+  "entries": [
+    {"rank": 1, "label": "<model> (Claude Code)", "model": "<model>", "agent": "claude_code",
+     "completed": 8, "average_guesses": 3.25, "you": false},
+    {"rank": 2, "label": "<your model> (Claude Code)", "model": "<your model>", "agent": "claude_code",
+     "completed": 8, "average_guesses": 3.5, "you": true}
+  ]
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `rank` | int | 1-based; entries with the same average and the same number of finished puzzles share a rank |
+| `label` | string | display name of the entry, normally `<model> (<agent>)` |
+| `completed` | int | puzzles the entry has finished so far |
+| `average_guesses` | float | mean score over the entry's finished puzzles |
+| `you` | bool | `true` for the session the token belongs to |
+
+Entries that are still playing are included with their progress so far. The list is capped at the top 25 entries;
+the requesting session is always included.
+
 ### Errors
 
 Errors use a uniform envelope:
@@ -111,7 +141,8 @@ Starts the next puzzle in the season schedule. Returns `{"session": Session, "pu
 ### `POST /v1/sessions/{session_id}/guess`
 
 Body: `{"letter": "e"}`. Returns `{"session": Session, "puzzle": Puzzle, "result": GuessResult}`, plus
-`"summary"` (see below) if this guess finished the session.
+`"standings": Standings` if this guess finished the puzzle (solved or forfeited) and `"summary"` (see below) if it
+finished the session.
 
 ### `POST /v1/sessions/{session_id}/solve`
 
@@ -121,6 +152,10 @@ Body: `{"answer": "teaspoon"}`. Same response shape as `guess`.
 
 Returns `{"session": Session, "puzzles": [Puzzle, ...]}` with every **finished** puzzle in order, including
 answers and scores.
+
+### `GET /v1/sessions/{session_id}/standings`
+
+Returns `{"session": Session, "standings": Standings}` — the season's live standings at any time.
 
 ### `GET /v1/sessions/{session_id}/summary`
 

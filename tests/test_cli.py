@@ -138,3 +138,74 @@ def test_summary_shows_difficulty_adjusted_slope() -> None:
     out = format_summary(summary, 2)
     assert "learning-curve slope: +3.000 guesses/round" in out
     assert "difficulty-adjusted slope: -0.500 guesses/round" in out
+
+
+OTHERS = [
+    {"label": "Entry A (harness)", "model": "model-a", "agent": "harness", "completed": 1, "average_guesses": 1.0},
+    {"label": "Entry B (harness)", "model": "model-b", "agent": "harness", "completed": 1, "average_guesses": 4.0},
+]
+
+
+def test_standings_are_printed_after_a_finished_puzzle(capsys: pytest.CaptureFixture[str]) -> None:
+    from tests.conftest import ANSWERS
+
+    arena = FakeArena(ANSWERS, others=OTHERS)
+    run(arena, capsys, "next")
+    _, out, _ = run(arena, capsys, "guess", "o")
+    assert "standings" not in out  # puzzle still in progress
+    run(arena, capsys, "guess", "z")
+    _, out, _ = run(arena, capsys, "solve", "oxbow")
+    lines = out.splitlines()
+    start = lines.index("Season 9 standings (live, avg guesses/puzzle, lower is better):")
+    assert lines[start - 1] == "Solved! Answer: OXBOW - 3 guesses"
+    assert lines[start + 1].split() == ["1.", "Entry", "A", "(harness)", "1/3", "1.00"]
+    assert lines[start + 2].split() == [">", "2.", "you", "(test-model)", "1/3", "3.00"]
+    assert lines[start + 3].split() == ["3.", "Entry", "B", "(harness)", "1/3", "4.00"]
+    assert lines[-1] == "Run `arena next` for puzzle 2/3."
+
+
+def test_standings_after_forfeit_and_after_last_puzzle(capsys: pytest.CaptureFixture[str]) -> None:
+    arena = FakeArena([("oxbow", "Landforms"), ("teaspoon", "Around the House")], max_guesses=2)
+    run(arena, capsys, "next")
+    run(arena, capsys, "guess", "a")
+    _, out, _ = run(arena, capsys, "guess", "e")
+    assert "Out of guesses" in out
+    assert "> 1. you (test-model)    1/2  2.00" in out
+    run(arena, capsys, "next")
+    _, out, _ = run(arena, capsys, "solve", "teaspoon")
+    assert "Session complete: 2/2 puzzles" in out
+    assert out.splitlines()[-1].split() == [">", "1.", "you", "(test-model)", "2/2", "1.50"]
+
+
+def test_standings_command(capsys: pytest.CaptureFixture[str]) -> None:
+    from tests.conftest import ANSWERS
+
+    arena = FakeArena(ANSWERS, others=OTHERS)
+    _, out, _ = run(arena, capsys, "standings")
+    assert out.splitlines()[0].startswith(f"Session {SESSION_ID} (season 9)  completed: 0/3")
+    assert "1. Entry A (harness)" in out
+    assert "you" not in out  # no finished puzzle yet
+    run(arena, capsys, "next")
+    run(arena, capsys, "solve", "oxbow")
+    _, out, _ = run(arena, capsys, "standings")
+    assert "> 1. you (test-model)" in out
+    assert "  1. Entry A (harness)" in out  # tie on average: same rank
+
+
+def test_standings_json_passthrough(capsys: pytest.CaptureFixture[str]) -> None:
+    from tests.conftest import ANSWERS
+
+    arena = FakeArena(ANSWERS, others=OTHERS)
+    run(arena, capsys, "next")
+    _, out, _ = run(arena, capsys, "--json", "solve", "oxbow")
+    body = json.loads(out)
+    assert [e["model"] for e in body["standings"]["entries"]] == ["model-a", "test-model", "model-b"]
+    assert body["standings"]["entries"][1]["you"] is True
+    _, out, _ = run(arena, capsys, "--json", "standings")
+    assert json.loads(out)["standings"]["entries"][0]["rank"] == 1
+
+
+def test_empty_standings_message() -> None:
+    from arena_client.formatting import format_standings
+
+    assert format_standings({"season": 3, "entries": []}, 20) == "Season 3 standings: no finished puzzles yet."
