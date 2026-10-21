@@ -48,7 +48,7 @@ class ArenaClient:
         self.session_id = session_id
         self._http = httpx.Client(
             base_url=base_url.rstrip("/"),
-            headers={"Authorization": f"Bearer {token}", "User-Agent": "arena-client/0.3.1"},
+            headers={"Authorization": f"Bearer {token}", "User-Agent": "arena-client/0.3.2"},
             timeout=timeout,
             transport=transport,
         )

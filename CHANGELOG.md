@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-21
+
+### Changed
+- Live standings are printed as their own block after every finished puzzle: a header, the server's one-line
+  notice on where you stand (`standings.notice`, from hangman-arena 0.3.2) and the table, set off by blank lines.
+- `--json`: the `standings` object is moved up right after `result`, with `notice` as its first field (contents
+  unchanged).
+- CLAUDE.md and README: a "Live standings" section on what the standings show and how to use them;
+  `docs/protocol.md` documents `notice`.
+
 ## [0.3.1] - 2026-10-21
 
 ### Added
@@ -49,7 +59,8 @@ All notable changes to this project are documented here. The format follows
 - `hangman_engine`: masking, letter/solve judging, per-puzzle scoring.
 - `arena_client`: `ArenaClient` SDK and the `arena` CLI (`next`, `guess`, `solve`, `status`).
 
-[Unreleased]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/kargal/hangman-arena-agent/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/kargal/hangman-arena-agent/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kargal/hangman-arena-agent/compare/v0.1.0...v0.2.0
